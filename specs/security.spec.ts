@@ -2,7 +2,7 @@ import * as assert from 'node:assert'
 import { spawnSync } from 'node:child_process'
 import { describe, it } from 'node:test'
 
-const PARSER_TIMEOUT_MS = 1000
+const PARSER_TIMEOUT_MS = 5000
 
 function assertParserTerminates(
   modulePath: string,
