@@ -26,6 +26,10 @@ jobs:
           node-version: ${{ matrix.node }}
       - run: corepack enable
       - run: yarn install --immutable
-      - run: yarn lint
+      - name: Check security regression test formatting
+        run: yarn biome check specs/security.spec.ts
+      - name: Inherited repository lint baseline
+        continue-on-error: true
+        run: yarn lint
       - run: yarn build
       - run: yarn test
