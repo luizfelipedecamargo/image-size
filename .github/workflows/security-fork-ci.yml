@@ -15,6 +15,7 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         node: ['18', '20']
     name: Node ${{ matrix.node }}
@@ -23,7 +24,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
-          cache: yarn
       - run: corepack enable
       - run: yarn install --immutable
       - run: yarn lint
