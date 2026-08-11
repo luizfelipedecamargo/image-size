@@ -33,3 +33,36 @@ jobs:
         run: yarn lint
       - run: yarn build
       - run: yarn test
+
+  git-consumer-smoke:
+    runs-on: ubuntu-latest
+    name: npm 12 Git consumer smoke
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Use npm 12.0.2
+        run: npm install --global npm@12.0.2
+      - name: Install pinned Git dependency and require package
+        shell: bash
+        run: |
+          set -euo pipefail
+          consumer="$(mktemp -d)"
+          cd "$consumer"
+          cat > package.json <<EOF
+          {
+            "name": "image-size-git-consumer-smoke",
+            "private": true,
+            "dependencies": {
+              "image-size": "git+https://github.com/${GITHUB_REPOSITORY}.git#${GITHUB_SHA}"
+            },
+            "allowScripts": {
+              "image-size@2.0.3-fila.2": true
+            }
+          }
+          EOF
+          printf 'allow-git=root\n' > .npmrc
+          npm install
+          test -f node_modules/image-size/dist/index.cjs
+          node -e "const loaded = require('image-size'); if (!loaded) process.exit(1)"
