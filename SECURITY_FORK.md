@@ -11,7 +11,7 @@ The fork exists only to carry narrowly scoped security fixes. It must not become
 - Upstream repository: `image-size/image-size`
 - Upstream baseline commit: `5c065e6949065c0015d2e8e6aced5c67280dfda2`
 - Upstream package version: `2.0.2`
-- Fork security version: `2.0.3-fila.1`
+- Fork security version: `2.0.3-fila.2`
 
 ## Security advisories
 
@@ -31,6 +31,12 @@ The controlled fork adds only parser progress guards required for the known infi
 3. ICNS: reject progress through an entry whose declared length is zero so the parser terminates instead of repeatedly processing the same entry.
 
 Regression tests execute the affected parsers in isolated child processes with a finite timeout. This ensures a future regression is reported as a failed test instead of hanging the complete test process indefinitely.
+
+## Packaging correction
+
+`2.0.3-fila.2` changes the Git dependency packaging lifecycle from `prepack` to `prepare` so the required `dist` artifacts are generated before npm packages a Git dependency for installation. This is required because the package exports point to `dist/index.cjs`, `dist/index.mjs` and their declaration files.
+
+The fork CI includes a consumer smoke test on Node 24 with npm `12.0.2`. It installs the fork through an immutable Git SHA, verifies that `node_modules/image-size/dist/index.cjs` exists, and loads the package through `require('image-size')`. The existing Node 18 and Node 20 build, regression-test and formatting checks remain in place.
 
 ## Versioning and consumption policy
 
