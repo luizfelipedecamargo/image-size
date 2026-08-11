@@ -5,7 +5,7 @@ import { toUTF8String, readUInt32BE } from './utils'
  * ICNS Header
  *
  * | Offset | Size | Purpose                                                |
- * | 0	    | 4    | Magic literal, must be "icns" (0x69, 0x63, 0x6e, 0x73) |
+ * | 0\t    | 4    | Magic literal, must be "icns" (0x69, 0x63, 0x6e, 0x73) |
  * | 4      | 4    | Length of file, in bytes, msb first.                   |
  *
  */
@@ -16,7 +16,7 @@ const FILE_LENGTH_OFFSET = 4 // MSB => BIG ENDIAN
  * Image Entry
  *
  * | Offset | Size | Purpose                                                          |
- * | 0	    | 4    | Icon type, see OSType below.                                     |
+ * | 0\t    | 4    | Icon type, see OSType below.                                     |
  * | 4      | 4    | Length of data, in bytes (including type and length), msb first. |
  * | 8      | n    | Icon data                                                        |
  */
@@ -76,6 +76,12 @@ function readImageHeader(
   ]
 }
 
+function assertEntryLength(length: number): void {
+  if (length === 0) {
+    throw new TypeError('Invalid ICNS, entry length must be greater than zero')
+  }
+}
+
 function getImageSize(type: string): ISize {
   const size = ICON_TYPE_SIZE[type]
   return { width: size, height: size, type }
@@ -90,6 +96,7 @@ export const ICNS: IImage = {
     let imageOffset = SIZE_HEADER
 
     let imageHeader = readImageHeader(input, imageOffset)
+    assertEntryLength(imageHeader[1])
     let imageSize = getImageSize(imageHeader[0])
     imageOffset += imageHeader[1]
 
@@ -103,6 +110,7 @@ export const ICNS: IImage = {
 
     while (imageOffset < fileLength && imageOffset < inputLength) {
       imageHeader = readImageHeader(input, imageOffset)
+      assertEntryLength(imageHeader[1])
       imageSize = getImageSize(imageHeader[0])
       imageOffset += imageHeader[1]
       result.images.push(imageSize)
