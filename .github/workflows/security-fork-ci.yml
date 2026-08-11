@@ -1,0 +1,72 @@
+name: Metro 1.x security fork CI
+
+on:
+  push:
+    branches:
+      - security/metro-1x-infinite-loop-dos
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['18', '20']
+    name: Node ${{ matrix.node }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: corepack enable
+      - run: yarn install --immutable
+      - run: yarn lint
+      - run: yarn build
+      - run: yarn test
+
+  metro-git-consumer-smoke:
+    runs-on: ubuntu-latest
+    name: npm 12 Metro API smoke
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Use npm 12.0.2
+        run: npm install --global npm@12.0.2
+      - name: Install pinned Git dependency and exercise Metro API
+        shell: bash
+        run: |
+          set -euo pipefail
+          consumer="$(mktemp -d)"
+          cd "$consumer"
+          cat > package.json <<EOF
+          {
+            "name": "image-size-metro-consumer-smoke",
+            "private": true,
+            "dependencies": {
+              "image-size": "git+https://github.com/${GITHUB_REPOSITORY}.git#${GITHUB_SHA}"
+            },
+            "allowScripts": {
+              "image-size@1.2.2-fila.1": true
+            }
+          }
+          EOF
+          printf 'allow-git=root\n' > .npmrc
+          npm install
+          test -f node_modules/image-size/dist/index.js
+          node - <<'NODE'
+          const path = require('node:path')
+          const imageSize = require('image-size')
+          if (typeof imageSize !== 'function') {
+            throw new Error('CommonJS export is not the Metro-compatible function API')
+          }
+          const sample = path.join(process.env.GITHUB_WORKSPACE, 'specs/images/valid/png/sample.png')
+          const dimensions = imageSize(sample)
+          if (dimensions.width !== 123 || dimensions.height !== 456) {
+            throw new Error(`Unexpected dimensions: ${JSON.stringify(dimensions)}`)
+          }
+          NODE
