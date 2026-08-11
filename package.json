@@ -1,6 +1,6 @@
 {
   "name": "image-size",
-  "version": "1.2.1",
+  "version": "1.2.2-fila.1",
   "description": "get dimensions of any image file",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -20,7 +20,7 @@
     "clean": "rm -rf dist docs",
     "generate-docs": "typedoc",
     "build": "tsc",
-    "prepack": "yarn clean && yarn build"
+    "prepare": "npm run build"
   },
   "keywords": [
     "image",
@@ -46,7 +46,10 @@
     "tiff",
     "webp"
   ],
-  "repository": "git://github.com/image-size/image-size.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/luizfelipedecamargo/image-size.git"
+  },
   "author": "netroy <aditya@netroy.in> (http://netroy.in/)",
   "license": "MIT",
   "devDependencies": {
